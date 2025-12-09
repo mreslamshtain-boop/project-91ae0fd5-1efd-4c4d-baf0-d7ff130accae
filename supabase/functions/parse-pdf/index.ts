@@ -5,6 +5,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Efficient base64 encoding that handles large files
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  const chunkSize = 8192;
+  let result = '';
+  
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize);
+    result += String.fromCharCode.apply(null, Array.from(chunk));
+  }
+  
+  return btoa(result);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -28,9 +42,19 @@ serve(async (req) => {
 
     console.log('Processing PDF:', file.name, 'Size:', file.size);
 
-    // Convert file to base64
+    // Check file size - limit to 10MB
+    if (file.size > 10 * 1024 * 1024) {
+      return new Response(JSON.stringify({ error: 'الملف كبير جداً. الحد الأقصى هو 10 ميجابايت' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Convert file to base64 in chunks to avoid stack overflow
     const arrayBuffer = await file.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const base64 = arrayBufferToBase64(arrayBuffer);
+
+    console.log('Base64 encoding complete, length:', base64.length);
 
     // Use AI to extract text from PDF
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -74,6 +98,12 @@ serve(async (req) => {
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: 'تم تجاوز الحد الأقصى للطلبات' }), {
           status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: 'يرجى إضافة رصيد لحساب Lovable AI' }), {
+          status: 402,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
