@@ -14,6 +14,7 @@ export interface Question {
   mark: number;
   imageUrl?: string;
   explanation?: string;
+  needsImage?: boolean;
 }
 
 export interface ExamConfig {
