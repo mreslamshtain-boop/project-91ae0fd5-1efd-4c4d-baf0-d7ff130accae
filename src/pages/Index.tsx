@@ -243,7 +243,7 @@ export default function Index() {
         </div>
 
         <footer className="text-center py-8 mt-12 border-t border-border">
-          <p className="text-muted-foreground">شكراً جزيلاً بتعونكم مع منصة قلم التعليمية ❤</p>
+          <p className="text-muted-foreground">شكراً جزيلاً لتعونكم الطيب مع منصة قلم التعليمية ❤</p>
         </footer>
       </div>
     </div>;
