@@ -1,9 +1,9 @@
-import { BookOpen, Upload } from "lucide-react";
+import { BookOpen, Award } from "lucide-react";
 export function ExamHeader() {
   return <header className="text-center py-8 md:py-12">
       <div className="flex items-center justify-center gap-3 mb-4">
         <div className="p-3 bg-primary/10 rounded-xl">
-          <Upload className="w-8 h-8 text-primary" />
+          <Award className="w-8 h-8 text-primary" />
         </div>
         <div className="p-3 bg-accent rounded-xl">
           <BookOpen className="w-8 h-8 text-accent-foreground" />
