@@ -1,9 +1,9 @@
-import { Sparkles, BookOpen } from "lucide-react";
+import { BookOpen, Upload } from "lucide-react";
 export function ExamHeader() {
   return <header className="text-center py-8 md:py-12">
       <div className="flex items-center justify-center gap-3 mb-4">
         <div className="p-3 bg-primary/10 rounded-xl">
-          <Sparkles className="w-8 h-8 text-primary" />
+          <Upload className="w-8 h-8 text-primary" />
         </div>
         <div className="p-3 bg-accent rounded-xl">
           <BookOpen className="w-8 h-8 text-accent-foreground" />
