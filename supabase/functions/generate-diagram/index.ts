@@ -30,11 +30,13 @@ serve(async (req) => {
 - Minimalist exam-style illustration
 - Include only essential labels in Arabic if needed
 - Professional and clear for students
+- Suitable for physics, math, or science exams
 
 The question context: ${questionText}
 
 Style: Clean educational diagram, no decorative elements, suitable for printing on exam paper.`;
 
+    // Use the correct image generation model
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -55,8 +57,14 @@ Style: Clean educational diagram, no decorative elements, suitable for printing 
       console.error('Image generation error:', response.status, errorText);
       
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+        return new Response(JSON.stringify({ error: 'Rate limit exceeded', imageUrl: null }), {
           status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: 'Payment required', imageUrl: null }), {
+          status: 402,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
@@ -64,51 +72,71 @@ Style: Clean educational diagram, no decorative elements, suitable for printing 
     }
 
     const data = await response.json();
-    const imageData = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    console.log('AI response structure:', JSON.stringify(data, null, 2).substring(0, 500));
+    
+    // Check different possible response structures
+    let imageData = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    if (!imageData) {
+      // Try alternative response structure
+      imageData = data.choices?.[0]?.message?.content;
+      if (imageData && !imageData.startsWith('data:image')) {
+        imageData = null;
+      }
+    }
 
     if (!imageData) {
-      console.log('No image generated, returning null');
+      console.log('No image generated, response:', JSON.stringify(data).substring(0, 500));
       return new Response(JSON.stringify({ imageUrl: null }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
+    console.log('Image data received, length:', imageData.length);
+
     // Upload to Supabase Storage
     if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
-      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-      
-      // Extract base64 data
-      const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
-      const imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-      
-      const fileName = `${examId}/${questionId}-${Date.now()}.png`;
-      
-      const { data: uploadData, error: uploadError } = await supabase
-        .storage
-        .from('question-images')
-        .upload(fileName, imageBuffer, {
-          contentType: 'image/png',
-          cacheControl: '3600',
-        });
+      try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+        
+        // Extract base64 data
+        const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
+        const imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+        
+        const fileName = `${examId}/${questionId}-${Date.now()}.png`;
+        
+        const { data: uploadData, error: uploadError } = await supabase
+          .storage
+          .from('question-images')
+          .upload(fileName, imageBuffer, {
+            contentType: 'image/png',
+            cacheControl: '3600',
+          });
 
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        // Return base64 as fallback
+        if (uploadError) {
+          console.error('Upload error:', uploadError);
+          // Return base64 as fallback
+          return new Response(JSON.stringify({ imageUrl: imageData }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const { data: publicUrl } = supabase
+          .storage
+          .from('question-images')
+          .getPublicUrl(fileName);
+
+        console.log('Image uploaded:', publicUrl.publicUrl);
+
+        return new Response(JSON.stringify({ imageUrl: publicUrl.publicUrl }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } catch (uploadErr) {
+        console.error('Storage upload error:', uploadErr);
         return new Response(JSON.stringify({ imageUrl: imageData }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-
-      const { data: publicUrl } = supabase
-        .storage
-        .from('question-images')
-        .getPublicUrl(fileName);
-
-      console.log('Image uploaded:', publicUrl.publicUrl);
-
-      return new Response(JSON.stringify({ imageUrl: publicUrl.publicUrl }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
     }
 
     // Return base64 if storage not available

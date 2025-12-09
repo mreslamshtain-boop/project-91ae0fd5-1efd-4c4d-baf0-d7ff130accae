@@ -54,13 +54,23 @@ serve(async (req) => {
 
 مهمتك: إنشاء أسئلة اختبار عالية الجودة بناءً على المحتوى المقدم.
 
-قواعد مهمة:
+قواعد مهمة جداً:
 1. جميع الأسئلة والخيارات يجب أن تكون باللغة العربية الفصحى
 2. كل سؤال يحتوي على 4 خيارات (أ، ب، ج، د)
 3. إجابة واحدة صحيحة فقط لكل سؤال
 4. الأسئلة يجب أن تكون متنوعة وتغطي مفاهيم مختلفة
 5. تجنب الأسئلة الغامضة أو غير الواضحة
 6. قدم شرحاً مختصراً لكل إجابة صحيحة
+
+**مهم جداً - الرموز الفيزيائية والرياضية:**
+- لا تستخدم أبداً رموز LaTeX مثل $q_1$ أو $\\frac{1}{2}$ أو أي صيغة LaTeX
+- اكتب جميع الرموز الفيزيائية والرياضية كنص عربي عادي
+- مثال: بدلاً من "$q_1$" اكتب "ش1" أو "الشحنة الأولى"
+- مثال: بدلاً من "$F$" اكتب "ق" أو "القوة"
+- مثال: بدلاً من "$r$" اكتب "ف" أو "المسافة"
+- مثال: بدلاً من "$2r$" اكتب "2ف" أو "ضعف المسافة"
+- مثال: بدلاً من "$v^2$" اكتب "ع²" أو "مربع السرعة"
+- استخدم الحروف العربية للرموز: ق للقوة، ك للكتلة، ج للتسارع، ع للسرعة، ش للشحنة، إلخ
 
 توزيع الدرجات حسب الصعوبة:
 - سهل (EASY): 1 درجة
@@ -83,10 +93,12 @@ ${difficultyInstructions}
 
 المطلوب: إنشاء ${questionCount} سؤال اختيار من متعدد.
 
+تذكير مهم: لا تستخدم أي رموز LaTeX. اكتب الرموز كنص عربي عادي.
+
 أرجع JSON array بالصيغة التالية:
 [
   {
-    "text": "نص السؤال",
+    "text": "نص السؤال (بدون LaTeX)",
     "optionA": "الخيار أ",
     "optionB": "الخيار ب",
     "optionC": "الخيار ج",
@@ -159,20 +171,49 @@ ${difficultyInstructions}
       throw new Error('Failed to parse AI response');
     }
 
-    // Validate and normalize questions
-    const normalizedQuestions = questions.map((q: any, index: number) => ({
-      index: index + 1,
-      text: q.text || q.question || '',
-      optionA: q.optionA || q.option_a || '',
-      optionB: q.optionB || q.option_b || '',
-      optionC: q.optionC || q.option_c || '',
-      optionD: q.optionD || q.option_d || '',
-      correctOption: (q.correctOption || q.correct_option || 'A').toUpperCase(),
-      difficulty: (q.difficulty || 'MEDIUM').toUpperCase(),
-      mark: q.mark || (q.difficulty === 'EASY' ? 1 : q.difficulty === 'HARD' ? 3 : 2),
-      explanation: q.explanation || '',
-      needsImage: q.needsImage || false,
-    }));
+    // Validate and normalize questions - also clean any LaTeX that slipped through
+    const normalizedQuestions = questions.map((q: any, index: number) => {
+      // Clean LaTeX from text
+      const cleanLatex = (text: string) => {
+        if (!text) return text;
+        return text
+          .replace(/\$([^$]+)\$/g, '$1') // Remove $ delimiters
+          .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2') // Convert fractions
+          .replace(/\\sqrt\{([^}]+)\}/g, '√$1') // Convert sqrt
+          .replace(/\^2/g, '²')
+          .replace(/\^3/g, '³')
+          .replace(/_1/g, '₁')
+          .replace(/_2/g, '₂')
+          .replace(/\\times/g, '×')
+          .replace(/\\div/g, '÷')
+          .replace(/\\pm/g, '±')
+          .replace(/\\leq/g, '≤')
+          .replace(/\\geq/g, '≥')
+          .replace(/\\neq/g, '≠')
+          .replace(/\\alpha/g, 'α')
+          .replace(/\\beta/g, 'β')
+          .replace(/\\gamma/g, 'γ')
+          .replace(/\\theta/g, 'θ')
+          .replace(/\\omega/g, 'ω')
+          .replace(/\\pi/g, 'π')
+          .replace(/\\Delta/g, 'Δ')
+          .replace(/\\/g, ''); // Remove remaining backslashes
+      };
+
+      return {
+        index: index + 1,
+        text: cleanLatex(q.text || q.question || ''),
+        optionA: cleanLatex(q.optionA || q.option_a || ''),
+        optionB: cleanLatex(q.optionB || q.option_b || ''),
+        optionC: cleanLatex(q.optionC || q.option_c || ''),
+        optionD: cleanLatex(q.optionD || q.option_d || ''),
+        correctOption: (q.correctOption || q.correct_option || 'A').toUpperCase(),
+        difficulty: (q.difficulty || 'MEDIUM').toUpperCase(),
+        mark: q.mark || (q.difficulty === 'EASY' ? 1 : q.difficulty === 'HARD' ? 3 : 2),
+        explanation: cleanLatex(q.explanation || ''),
+        needsImage: q.needsImage || false,
+      };
+    });
 
     console.log(`Generated ${normalizedQuestions.length} questions`);
 
