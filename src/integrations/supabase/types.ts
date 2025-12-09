@@ -14,7 +14,101 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      exams: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration_minutes: number | null
+          grade: string | null
+          id: string
+          passing_percent: number | null
+          subject: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          grade?: string | null
+          id?: string
+          passing_percent?: number | null
+          subject?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          grade?: string | null
+          id?: string
+          passing_percent?: number | null
+          subject?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      questions: {
+        Row: {
+          correct_option: string
+          created_at: string
+          difficulty: string
+          exam_id: string
+          explanation: string | null
+          id: string
+          image_url: string | null
+          index: number
+          mark: number
+          option_a: string
+          option_b: string
+          option_c: string
+          option_d: string
+          text: string
+        }
+        Insert: {
+          correct_option: string
+          created_at?: string
+          difficulty: string
+          exam_id: string
+          explanation?: string | null
+          id?: string
+          image_url?: string | null
+          index: number
+          mark?: number
+          option_a: string
+          option_b: string
+          option_c: string
+          option_d: string
+          text: string
+        }
+        Update: {
+          correct_option?: string
+          created_at?: string
+          difficulty?: string
+          exam_id?: string
+          explanation?: string | null
+          id?: string
+          image_url?: string | null
+          index?: number
+          mark?: number
+          option_a?: string
+          option_b?: string
+          option_c?: string
+          option_d?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
