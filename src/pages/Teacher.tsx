@@ -82,18 +82,20 @@ export default function Teacher() {
               </Link>
             </Card>
 
-            <Card className="cursor-pointer hover:border-primary transition-colors opacity-50">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
-                    <FileText className="w-6 h-6 text-muted-foreground" />
+            <Card className="cursor-pointer hover:border-primary transition-colors">
+              <Link to="/teacher/exams">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                      <FileText className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">اختباراتي السابقة</h3>
+                      <p className="text-sm text-muted-foreground">عرض وتصدير الاختبارات السابقة</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold">اختباراتي السابقة</h3>
-                    <p className="text-sm text-muted-foreground">قريباً...</p>
-                  </div>
-                </div>
-              </CardContent>
+                </CardContent>
+              </Link>
             </Card>
           </div>
         </div>

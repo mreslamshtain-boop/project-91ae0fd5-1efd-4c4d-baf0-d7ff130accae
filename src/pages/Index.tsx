@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Sparkles, Loader2, LogOut, ArrowRight } from "lucide-react";
 import { ExamHeader } from "@/components/exam/ExamHeader";
 import { ExamInfoForm } from "@/components/exam/ExamInfoForm";
 import { SourceSelector } from "@/components/exam/SourceSelector";
@@ -44,6 +46,8 @@ const initialGenerationConfig: GenerationConfig = {
 
 export default function Index() {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [examConfig, setExamConfig] = useState<ExamConfig>(initialExamConfig);
   const [generationConfig, setGenerationConfig] = useState<GenerationConfig>(initialGenerationConfig);
   const [progress, setProgress] = useState<GenerationProgress>({
@@ -180,8 +184,35 @@ export default function Index() {
     setProgress({ step: "idle", message: "", progress: 0 });
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const backRoute = user?.role === 'ADMIN' ? '/admin' : '/teacher';
+
   return (
     <div dir="rtl" className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border bg-card mb-6">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link to={backRoute}>
+              <Button variant="ghost" size="icon">
+                <ArrowRight className="w-5 h-5" />
+              </Button>
+            </Link>
+            <h1 className="text-xl font-bold">Qalam AI</h1>
+          </div>
+          {user && (
+            <Button variant="ghost" onClick={handleLogout}>
+              <LogOut className="w-4 h-4 ml-2" />
+              تسجيل الخروج
+            </Button>
+          )}
+        </div>
+      </header>
+
       <div className="container max-w-4xl mx-auto px-4 py-6">
         <ExamHeader />
 
