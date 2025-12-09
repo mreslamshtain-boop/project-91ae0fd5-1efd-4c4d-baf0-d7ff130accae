@@ -4,10 +4,22 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, LogOut, ArrowRight, FileText, Calendar, Clock, Download } from 'lucide-react';
+import { Loader2, LogOut, ArrowRight, FileText, Calendar, Clock, Download, Trash2 } from 'lucide-react';
 import { generateExcel } from '@/lib/export-excel';
 import { generatePdf } from '@/lib/export-pdf';
 import { Exam, Question } from '@/types/exam';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface ExamWithQuestions {
   id: string;
@@ -122,6 +134,32 @@ export default function TeacherExams() {
       createdAt: new Date(examData.created_at),
     };
     await generatePdf(exam, cardsPerPage);
+  };
+
+  const handleDeleteExam = async (examId: string) => {
+    try {
+      // Delete questions first (due to foreign key)
+      const { error: questionsError } = await supabase
+        .from('questions')
+        .delete()
+        .eq('exam_id', examId);
+
+      if (questionsError) throw questionsError;
+
+      // Delete the exam
+      const { error: examError } = await supabase
+        .from('exams')
+        .delete()
+        .eq('id', examId);
+
+      if (examError) throw examError;
+
+      setExams(exams.filter(e => e.id !== examId));
+      toast.success('تم حذف الاختبار بنجاح');
+    } catch (error) {
+      console.error('Error deleting exam:', error);
+      toast.error('حدث خطأ أثناء حذف الاختبار');
+    }
   };
 
   if (authLoading || !user) {
@@ -240,6 +278,31 @@ export default function TeacherExams() {
                           <Download className="w-4 h-4 ml-1" />
                           PDF
                         </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm">
+                              <Trash2 className="w-4 h-4 ml-1" />
+                              حذف
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent dir="rtl">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>هل أنت متأكد من حذف الاختبار؟</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                سيتم حذف الاختبار "{exam.title}" وجميع أسئلته نهائياً. لا يمكن التراجع عن هذا الإجراء.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter className="flex-row-reverse gap-2">
+                              <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteExam(exam.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                حذف
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
                   </CardContent>
