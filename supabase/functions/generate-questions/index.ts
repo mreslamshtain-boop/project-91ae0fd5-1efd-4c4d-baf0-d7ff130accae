@@ -125,15 +125,17 @@ const normalizeQuestion = (q: any, index: number): Question => ({
   qualityScore: q.qualityScore,
 });
 
-// Call AI API with model selection
+// Call AI API with model selection via OpenRouter
 async function callAI(apiKey: string, systemPrompt: string, userPrompt: string, useFastModel = false): Promise<string> {
-  const model = useFastModel ? 'google/gemini-2.5-flash' : 'google/gemini-2.5-flash';
+  const model = useFastModel ? 'google/gemini-2.5-flash-preview' : 'google/gemini-2.5-flash-preview';
   
-  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://lovable.dev',
+      'X-Title': 'Exam Generator',
     },
     body: JSON.stringify({
       model,
@@ -152,7 +154,7 @@ async function callAI(apiKey: string, systemPrompt: string, userPrompt: string, 
       throw { status: 429, message: 'تم تجاوز الحد الأقصى للطلبات. يرجى المحاولة لاحقاً.' };
     }
     if (response.status === 402) {
-      throw { status: 402, message: 'يرجى إضافة رصيد لحساب Lovable AI.' };
+      throw { status: 402, message: 'يرجى إضافة رصيد لحساب OpenRouter.' };
     }
     throw new Error(`AI API error: ${response.status}`);
   }
@@ -235,9 +237,9 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
+    if (!OPENROUTER_API_KEY) {
+      throw new Error('OPENROUTER_API_KEY is not configured');
     }
 
     const { title, description, subject, grade, questionCount, difficulty, pdfContent, customPrompt, enableQualityCheck }: GenerateRequest = await req.json();
@@ -392,7 +394,7 @@ ${difficultyInstructions}
 
     // Step 1: Generate initial questions
     console.log('Step 1: Generating initial questions...');
-    const content = await callAI(LOVABLE_API_KEY, systemPrompt, userPrompt);
+    const content = await callAI(OPENROUTER_API_KEY, systemPrompt, userPrompt);
     
     let rawQuestions;
     try {
@@ -424,7 +426,7 @@ ${difficultyInstructions}
         console.log('Step 3: Regenerating weak questions...');
         const weakQuestions = weakIndices.map(i => normalizedQuestions[i]);
         const improvedQuestions = await regenerateWeakQuestions(
-          LOVABLE_API_KEY,
+          OPENROUTER_API_KEY,
           weakQuestions,
           { subject, grade, title, description, customPrompt }
         );

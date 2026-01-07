@@ -12,12 +12,12 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    if (!OPENROUTER_API_KEY) {
+      throw new Error('OPENROUTER_API_KEY is not configured');
     }
 
     const { questionText, examId, questionId } = await req.json();
@@ -60,19 +60,20 @@ The question context: ${normalizedText}
 
 Style: Clean educational diagram, no decorative elements, suitable for printing on exam paper.`;
 
-    // Use the correct image generation model
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Use OpenRouter API with image generation model
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://lovable.dev',
+        'X-Title': 'Exam Generator',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-pro-image-preview',
+        model: 'google/gemini-2.5-flash-preview-image-generation',
         messages: [
           { role: 'user', content: prompt }
         ],
-        modalities: ['image', 'text'],
       }),
     });
 
