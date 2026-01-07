@@ -37,6 +37,8 @@ export default function Admin() {
   const [isCreating, setIsCreating] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [createdCredentials, setCreatedCredentials] = useState<{ phone: string; password: string } | null>(null);
+  const [showSubHeader, setShowSubHeader] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   
   // Form state
   const [newTeacher, setNewTeacher] = useState({ name: '', phone: '', password: '' });
@@ -50,6 +52,22 @@ export default function Admin() {
       navigate('/teacher');
     }
   }, [user, authLoading, navigate]);
+
+  // Scroll handler for sub-header
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setShowSubHeader(false);
+      } else {
+        setShowSubHeader(true);
+      }
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   // Fetch teachers
   useEffect(() => {
@@ -211,41 +229,49 @@ export default function Admin() {
 
   return (
     <div dir="rtl" className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold">Qalam AI</span>
-            </Link>
-            <div className="h-8 w-px bg-border" />
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                <Shield className="w-4 h-4 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium">لوحة تحكم الإدارة</p>
-                <p className="text-xs text-muted-foreground">مرحباً، {user.name || 'مدير'}</p>
-              </div>
+      {/* Main Header - Fixed */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-card border-b border-border">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" asChild>
-              <Link to="/generate">
-                <FileText className="w-4 h-4 ml-2" />
-                مولّد الاختبارات
-              </Link>
-            </Button>
-            <Button variant="ghost" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 ml-2" />
-              تسجيل الخروج
-            </Button>
-          </div>
+            <span className="text-xl font-bold">Qalam AI</span>
+          </Link>
+          <Button variant="ghost" onClick={handleLogout}>
+            <LogOut className="w-4 h-4 ml-2" />
+            تسجيل الخروج
+          </Button>
         </div>
       </header>
+
+      {/* Sub Header - Hides on scroll */}
+      <div 
+        className={`fixed top-[57px] left-0 right-0 z-40 bg-card/95 backdrop-blur-sm border-b border-border transition-transform duration-300 ${
+          showSubHeader ? 'translate-y-0' : '-translate-y-full'
+        }`}
+      >
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+              <Shield className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-medium">لوحة تحكم الإدارة</p>
+              <p className="text-xs text-muted-foreground">مرحباً، {user.name || 'مدير'}</p>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/generate">
+              <FileText className="w-4 h-4 ml-2" />
+              مولّد الاختبارات
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      {/* Spacer for fixed headers */}
+      <div className={`${showSubHeader ? 'h-[114px]' : 'h-[57px]'} transition-all duration-300`} />
 
       <main className="container mx-auto px-4 py-8">
         {/* Stats */}
