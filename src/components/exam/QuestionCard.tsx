@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, EyeOff, CheckCircle2 } from "lucide-react";
+import { Eye, EyeOff, CheckCircle2, Star } from "lucide-react";
 import { Question, CorrectOption } from "@/types/exam";
 
 interface QuestionCardProps {
@@ -47,6 +47,21 @@ export function QuestionCard({ question, globalShowAnswer = false }: QuestionCar
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant={difficulty.variant}>{difficulty.label}</Badge>
               <Badge variant="outline">الدرجة: {question.mark}</Badge>
+              {question.qualityScore !== undefined && (
+                <Badge 
+                  variant="outline" 
+                  className={`flex items-center gap-1 ${
+                    question.qualityScore >= 8 
+                      ? 'border-green-500 text-green-600 dark:text-green-400' 
+                      : question.qualityScore >= 6 
+                        ? 'border-yellow-500 text-yellow-600 dark:text-yellow-400'
+                        : 'border-red-500 text-red-600 dark:text-red-400'
+                  }`}
+                >
+                  <Star className="w-3 h-3" />
+                  {question.qualityScore}/10
+                </Badge>
+              )}
             </div>
           </div>
           <Button

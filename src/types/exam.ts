@@ -15,6 +15,7 @@ export interface Question {
   imageUrl?: string;
   explanation?: string;
   needsImage?: boolean;
+  qualityScore?: number;
 }
 
 export interface ExamConfig {
