@@ -66,8 +66,8 @@ serve(async (req) => {
         'X-Title': 'Exam Generator',
       },
       body: JSON.stringify({
-        model: 'xiaomi/mimo-v2-flash:free',
-        max_tokens: 4000,
+        model: 'google/gemini-2.0-flash-exp:free',
+        max_tokens: 16000,
         messages: [
           {
             role: 'user',
