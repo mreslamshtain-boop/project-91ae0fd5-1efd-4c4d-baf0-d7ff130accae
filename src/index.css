@@ -158,3 +158,10 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Ensure scientific notation and numbers display correctly in RTL */
+.ltr-numbers {
+  direction: ltr;
+  unicode-bidi: embed;
+  display: inline;
+}

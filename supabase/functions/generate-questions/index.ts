@@ -380,7 +380,7 @@ ${description ? `**ملاحظات إضافية:**\n${description}` : ''}` : `**�
 
 ${difficultyInstructions}
 
-**المطلوب:** إنشاء ${questionCount} سؤال اختيار من متعدد.
+**المطلوب:** إنشاء ${questionCount} سؤال فقط (لا أكثر ولا أقل).
 
 **تعليمات حاسمة (التزم حرفياً):**
 1. كل سؤال مبني على معلومة محددة من المحتوى أعلاه فقط
@@ -421,8 +421,14 @@ ${difficultyInstructions}
       throw new Error('Failed to parse AI response');
     }
 
+    // Trim to requested count if AI returned more
+    if (rawQuestions.length > questionCount) {
+      console.log(`AI returned ${rawQuestions.length} questions, trimming to ${questionCount}`);
+      rawQuestions = rawQuestions.slice(0, questionCount);
+    }
+
     let normalizedQuestions = rawQuestions.map((q: any, i: number) => normalizeQuestion(q, i));
-    console.log(`Generated ${normalizedQuestions.length} initial questions`);
+    console.log(`Generated ${normalizedQuestions.length} questions`);
 
     // Step 2: Fast quality check (if enabled)
     if (enableQualityCheck && normalizedQuestions.length > 0) {
