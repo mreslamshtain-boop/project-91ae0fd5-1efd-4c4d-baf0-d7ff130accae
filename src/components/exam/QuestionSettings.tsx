@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { Settings2, Image, Hash } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Settings2, Image, Hash, Sparkles, CheckCircle2 } from "lucide-react";
 import { GenerationConfig, DifficultySettings } from "@/types/exam";
 
 interface QuestionSettingsProps {
@@ -167,6 +168,47 @@ export function QuestionSettings({ config, onChange }: QuestionSettingsProps) {
           </div>
         )}
 
+        {/* Custom Prompt */}
+        <div className="space-y-3">
+          <Label htmlFor="customPrompt" className="text-base font-medium flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-muted-foreground" />
+            توجيهات إضافية (اختياري)
+          </Label>
+          <Textarea
+            id="customPrompt"
+            placeholder="مثال: ركز على المسائل الحسابية... أو اهتم بالأسئلة النظرية... أو اجعل الأسئلة تتضمن أمثلة عملية..."
+            value={config.customPrompt || ""}
+            onChange={(e) => onChange({ ...config, customPrompt: e.target.value })}
+            className="min-h-[80px] resize-none"
+          />
+          <p className="text-xs text-muted-foreground">
+            أضف توجيهات خاصة للذكاء الاصطناعي لتحسين جودة الأسئلة وتوجيهها نحو جوانب معينة
+          </p>
+        </div>
+
+        {/* Quality Check Toggle */}
+        <div className="flex items-center justify-between p-4 bg-card rounded-lg border border-border">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <CheckCircle2 className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <Label htmlFor="qualityCheck" className="text-base font-medium cursor-pointer">
+                تقييم جودة الأسئلة
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                تقييم تلقائي وإعادة توليد الأسئلة الضعيفة
+              </p>
+            </div>
+          </div>
+          <Switch
+            id="qualityCheck"
+            checked={config.enableQualityCheck}
+            onCheckedChange={(checked) => onChange({ ...config, enableQualityCheck: checked })}
+          />
+        </div>
+
+        {/* Generate Images Toggle */}
         <div className="flex items-center justify-between p-4 bg-card rounded-lg border border-border">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg">

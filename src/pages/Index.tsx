@@ -32,7 +32,9 @@ const initialGenerationConfig: GenerationConfig = {
     hardPercent: 33
   },
   generateImages: true,
-  sourceType: "description"
+  sourceType: "description",
+  customPrompt: "",
+  enableQualityCheck: true
 };
 export default function Index() {
   const {

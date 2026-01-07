@@ -39,6 +39,8 @@ export async function generateQuestions(
       questionCount: generationConfig.questionCount,
       difficulty: generationConfig.difficulty,
       pdfContent,
+      customPrompt: generationConfig.customPrompt,
+      enableQualityCheck: generationConfig.enableQualityCheck,
     }),
   });
 

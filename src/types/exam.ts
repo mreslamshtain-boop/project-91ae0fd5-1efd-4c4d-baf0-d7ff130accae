@@ -39,6 +39,15 @@ export interface GenerationConfig {
   generateImages: boolean;
   sourceType: 'description' | 'pdf' | 'both';
   pdfFile?: File;
+  customPrompt?: string;
+  enableQualityCheck: boolean;
+}
+
+export interface QuestionQuality {
+  questionId: string;
+  score: number;
+  issues: string[];
+  suggestion?: string;
 }
 
 export interface Exam extends ExamConfig {
@@ -48,7 +57,7 @@ export interface Exam extends ExamConfig {
 }
 
 export interface GenerationProgress {
-  step: 'idle' | 'analyzing' | 'generating' | 'images' | 'excel' | 'complete' | 'error';
+  step: 'idle' | 'analyzing' | 'generating' | 'quality-check' | 'regenerating' | 'images' | 'excel' | 'complete' | 'error';
   message: string;
   progress: number;
 }
