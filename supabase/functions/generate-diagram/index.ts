@@ -22,7 +22,17 @@ serve(async (req) => {
 
     const { questionText, examId, questionId } = await req.json();
 
-    console.log('Generating diagram for question:', questionText.substring(0, 100));
+    // Normalize Arabic symbols to Latin before sending to diagram generator
+    const normalizedText = questionText
+      .replace(/\bش₁\b/g, 'q₁').replace(/\bش₂\b/g, 'q₂').replace(/\bش₃\b/g, 'q₃')
+      .replace(/\bش\b/g, 'q')
+      .replace(/\bق₁\b/g, 'F₁').replace(/\bق₂\b/g, 'F₂').replace(/\bق\b/g, 'F')
+      .replace(/\bف₁\b/g, 'r₁').replace(/\bف₂\b/g, 'r₂').replace(/\bف\b/g, 'r')
+      .replace(/\bك₁\b/g, 'm₁').replace(/\bك₂\b/g, 'm₂').replace(/\bك\b/g, 'm')
+      .replace(/\bع₁\b/g, 'v₁').replace(/\bع₂\b/g, 'v₂').replace(/\bع\b/g, 'v')
+      .replace(/٣ف/g, '3r').replace(/٢ف/g, '2r').replace(/٤ف/g, '4r');
+
+    console.log('Generating diagram for question:', normalizedText.substring(0, 100));
 
     // Create a prompt for diagram generation
     const prompt = `Create a simple, clean educational diagram for an Arabic exam question. The diagram should be:
@@ -46,7 +56,7 @@ serve(async (req) => {
 - Example correct labels: q₁, q₂, r, 3r, F, +q, -q
 - Example WRONG labels: ش₁, ش₂, ف, ٣ف, ق
 
-The question context: ${questionText}
+The question context: ${normalizedText}
 
 Style: Clean educational diagram, no decorative elements, suitable for printing on exam paper.`;
 
