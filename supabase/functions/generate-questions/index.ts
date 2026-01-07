@@ -80,8 +80,10 @@ const normalizeQuestion = (q: any, index: number): Question => ({
   qualityScore: q.qualityScore,
 });
 
-// Call AI API
-async function callAI(apiKey: string, systemPrompt: string, userPrompt: string): Promise<string> {
+// Call AI API with model selection
+async function callAI(apiKey: string, systemPrompt: string, userPrompt: string, useFastModel = false): Promise<string> {
+  const model = useFastModel ? 'google/gemini-2.5-flash' : 'google/gemini-2.5-flash';
+  
   const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -89,7 +91,7 @@ async function callAI(apiKey: string, systemPrompt: string, userPrompt: string):
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'google/gemini-2.5-pro',
+      model,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
@@ -123,102 +125,62 @@ function parseJsonFromResponse(content: string): any[] {
   throw new Error('No JSON array found in response');
 }
 
-// Evaluate question quality
-async function evaluateQuality(apiKey: string, questions: Question[]): Promise<{ scores: number[], weakIndices: number[] }> {
-  const evaluationPrompt = `أنت خبير في تقييم جودة أسئلة الاختبارات. قيّم الأسئلة التالية من 1 إلى 10:
-
-معايير التقييم:
-- وضوح صياغة السؤال (2 نقاط)
-- جودة الخيارات المشتتة (2 نقاط)
-- عدم وجود غموض (2 نقاط)
-- مناسبة مستوى الصعوبة (2 نقاط)
-- صحة الإجابة والشرح (2 نقاط)
-
-الأسئلة:
-${questions.map((q, i) => `
-سؤال ${i + 1}:
-${q.text}
-أ) ${q.optionA}
-ب) ${q.optionB}
-ج) ${q.optionC}
-د) ${q.optionD}
-الإجابة: ${q.correctOption}
-`).join('\n')}
-
-أرجع JSON array بالصيغة:
-[{"index": 1, "score": 8, "issues": ["وصف المشكلة إن وجدت"]}]`;
-
-  try {
-    const content = await callAI(apiKey, 'أنت خبير تقييم أسئلة اختبارات. أرجع JSON فقط.', evaluationPrompt);
-    const evaluations = parseJsonFromResponse(content);
+// Fast quality evaluation - checks basic criteria without AI call
+function evaluateQualityFast(questions: Question[]): { scores: number[], weakIndices: number[] } {
+  const scores: number[] = [];
+  const weakIndices: number[] = [];
+  
+  questions.forEach((q, i) => {
+    let score = 10;
     
-    const scores: number[] = [];
-    const weakIndices: number[] = [];
+    // Check question text length
+    if (q.text.length < 20) score -= 3;
+    else if (q.text.length < 40) score -= 1;
     
-    evaluations.forEach((evalItem: any) => {
-      const idx = (evalItem.index || evalItem.questionIndex || 0) - 1;
-      const score = evalItem.score || 5;
-      if (idx >= 0 && idx < questions.length) {
-        scores[idx] = score;
-        if (score < 6) {
-          weakIndices.push(idx);
-        }
-      }
-    });
+    // Check options variety
+    const options = [q.optionA, q.optionB, q.optionC, q.optionD];
+    const uniqueOptions = new Set(options.map(o => o.trim().toLowerCase()));
+    if (uniqueOptions.size < 4) score -= 2;
     
-    // Fill missing scores
-    for (let i = 0; i < questions.length; i++) {
-      if (scores[i] === undefined) scores[i] = 7;
-    }
+    // Check options length balance
+    const avgLen = options.reduce((sum, o) => sum + o.length, 0) / 4;
+    const lenVariance = options.reduce((sum, o) => sum + Math.abs(o.length - avgLen), 0) / 4;
+    if (lenVariance > avgLen * 0.8) score -= 1;
     
-    return { scores, weakIndices };
-  } catch (error) {
-    console.error('Quality evaluation error:', error);
-    // Return default scores if evaluation fails
-    return { 
-      scores: questions.map(() => 7), 
-      weakIndices: [] 
-    };
-  }
+    // Check explanation exists
+    if (!q.explanation || q.explanation.length < 10) score -= 1;
+    
+    // Check correct option is valid
+    if (!['A', 'B', 'C', 'D'].includes(q.correctOption)) score -= 2;
+    
+    scores[i] = Math.max(1, score);
+    if (scores[i] < 6) weakIndices.push(i);
+  });
+  
+  return { scores, weakIndices };
 }
 
-// Regenerate weak questions
+// Regenerate weak questions - simplified for speed
 async function regenerateWeakQuestions(
   apiKey: string,
   weakQuestions: Question[],
   context: { subject: string; grade: string; title: string; description: string; customPrompt?: string }
 ): Promise<Question[]> {
-  const regeneratePrompt = `أعد كتابة الأسئلة التالية بجودة أعلى. حسّن الصياغة واجعل الخيارات المشتتة أكثر ذكاءً:
-
-${weakQuestions.map((q, i) => `
-سؤال ${i + 1} (الأصلي):
-${q.text}
-أ) ${q.optionA}
-ب) ${q.optionB}
-ج) ${q.optionC}
-د) ${q.optionD}
-الإجابة الصحيحة: ${q.correctOption}
-الصعوبة: ${q.difficulty}
-`).join('\n')}
+  if (weakQuestions.length === 0) return [];
+  
+  const regeneratePrompt = `حسّن هذه الأسئلة:
+${weakQuestions.map((q, i) => `${i + 1}. ${q.text} (${q.difficulty})`).join('\n')}
 
 المادة: ${context.subject}
-الصف: ${context.grade}
-${context.customPrompt ? `توجيهات إضافية: ${context.customPrompt}` : ''}
-
-أرجع JSON array بنفس الصيغة:
-[{"text": "...", "optionA": "...", "optionB": "...", "optionC": "...", "optionD": "...", "correctOption": "A", "difficulty": "MEDIUM", "mark": 2, "explanation": "...", "needsImage": false}]`;
-
-  const systemPrompt = `أنت مساعد تعليمي متخصص في تحسين أسئلة الاختبارات. 
-اكتب الأسئلة بالعربية الفصحى. لا تستخدم LaTeX.
-اجعل الأسئلة واضحة ودقيقة.`;
+أرجع JSON array: [{"text":"..","optionA":"..","optionB":"..","optionC":"..","optionD":"..","correctOption":"A","difficulty":"MEDIUM","mark":2,"explanation":"..","needsImage":false}]`;
 
   try {
-    const content = await callAI(apiKey, systemPrompt, regeneratePrompt);
+    const content = await callAI(apiKey, 'حسّن الأسئلة. أرجع JSON فقط.', regeneratePrompt, true);
     const improved = parseJsonFromResponse(content);
     return improved.map((q: any, i: number) => normalizeQuestion(q, weakQuestions[i].index - 1));
   } catch (error) {
     console.error('Regeneration error:', error);
-    return weakQuestions; // Return original if regeneration fails
+    return weakQuestions;
   }
 }
 
@@ -338,10 +300,10 @@ ${difficultyInstructions}
     let normalizedQuestions = rawQuestions.map((q: any, i: number) => normalizeQuestion(q, i));
     console.log(`Generated ${normalizedQuestions.length} initial questions`);
 
-    // Step 2: Quality check and regeneration (if enabled)
+    // Step 2: Fast quality check (if enabled)
     if (enableQualityCheck && normalizedQuestions.length > 0) {
-      console.log('Step 2: Evaluating question quality...');
-      const { scores, weakIndices } = await evaluateQuality(LOVABLE_API_KEY, normalizedQuestions);
+      console.log('Step 2: Fast quality evaluation...');
+      const { scores, weakIndices } = evaluateQualityFast(normalizedQuestions);
       
       // Add quality scores to questions
       normalizedQuestions = normalizedQuestions.map((q: Question, i: number) => ({
@@ -352,8 +314,8 @@ ${difficultyInstructions}
       console.log(`Quality scores: ${scores.join(', ')}`);
       console.log(`Weak questions (score < 6): ${weakIndices.length}`);
 
-      // Step 3: Regenerate weak questions
-      if (weakIndices.length > 0 && weakIndices.length <= Math.ceil(normalizedQuestions.length / 2)) {
+      // Only regenerate if there are few weak questions (max 3)
+      if (weakIndices.length > 0 && weakIndices.length <= 3) {
         console.log('Step 3: Regenerating weak questions...');
         const weakQuestions = weakIndices.map(i => normalizedQuestions[i]);
         const improvedQuestions = await regenerateWeakQuestions(
@@ -362,13 +324,12 @@ ${difficultyInstructions}
           { subject, grade, title, description, customPrompt }
         );
         
-        // Replace weak questions with improved ones
         weakIndices.forEach((originalIndex, i) => {
           if (improvedQuestions[i]) {
             normalizedQuestions[originalIndex] = {
               ...improvedQuestions[i],
               index: originalIndex + 1,
-              qualityScore: 8 // Assume improved
+              qualityScore: 8
             };
           }
         });
