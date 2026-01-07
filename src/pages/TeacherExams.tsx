@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, LogOut, ArrowRight, FileText, Calendar, Clock, Download, Trash2 } from 'lucide-react';
+import { Loader2, LogOut, ArrowRight, FileText, Calendar, Clock, Download, Trash2, Sparkles } from 'lucide-react';
 import { generateExcel } from '@/lib/export-excel';
 import { generatePdf } from '@/lib/export-pdf';
 import { Exam, Question } from '@/types/exam';
@@ -175,16 +175,21 @@ export default function TeacherExams() {
       {/* Header */}
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <span className="text-xl font-bold">Qalam AI</span>
+            </Link>
+            <div className="h-8 w-px bg-border" />
             <Link to="/teacher">
-              <Button variant="ghost" size="icon">
-                <ArrowRight className="w-5 h-5" />
+              <Button variant="ghost" size="sm">
+                <ArrowRight className="w-4 h-4 ml-1" />
+                العودة
               </Button>
             </Link>
-            <div>
-              <h1 className="text-xl font-bold">Qalam AI</h1>
-              <p className="text-sm text-muted-foreground">اختباراتي السابقة</p>
-            </div>
+            <span className="text-sm text-muted-foreground">اختباراتي السابقة</span>
           </div>
           <Button variant="ghost" onClick={handleLogout}>
             <LogOut className="w-4 h-4 ml-2" />

@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, LogOut, UserPlus, RefreshCw, Shield, Users, FileText } from 'lucide-react';
+import { Loader2, LogOut, UserPlus, RefreshCw, Shield, Users, FileText, Sparkles } from 'lucide-react';
 import { z } from 'zod';
 import { Link } from 'react-router-dom';
 
@@ -214,13 +214,22 @@ export default function Admin() {
       {/* Header */}
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-              <Shield className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold">لوحة تحكم الإدارة</h1>
-              <p className="text-sm text-muted-foreground">مرحباً، {user.name || 'مدير'}</p>
+          <div className="flex items-center gap-4">
+            <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <span className="text-xl font-bold">Qalam AI</span>
+            </Link>
+            <div className="h-8 w-px bg-border" />
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                <Shield className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">لوحة تحكم الإدارة</p>
+                <p className="text-xs text-muted-foreground">مرحباً، {user.name || 'مدير'}</p>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
