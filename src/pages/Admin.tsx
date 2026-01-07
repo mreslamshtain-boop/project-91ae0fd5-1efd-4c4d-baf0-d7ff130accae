@@ -225,7 +225,7 @@ export default function Admin() {
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" asChild>
-              <Link to="/">
+              <Link to="/generate">
                 <FileText className="w-4 h-4 ml-2" />
                 مولّد الاختبارات
               </Link>
