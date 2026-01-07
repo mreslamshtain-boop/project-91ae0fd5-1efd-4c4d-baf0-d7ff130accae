@@ -37,6 +37,46 @@ interface Question {
   qualityScore?: number;
 }
 
+// Normalize Arabic physics symbols to standard Latin
+const normalizeSymbols = (text: string): string => {
+  if (!text) return text;
+  
+  // Replace Arabic physics symbols with Latin equivalents
+  // Only when they appear in mathematical/variable contexts
+  return text
+    // شحنة -> q (when appearing as variable)
+    .replace(/\bش₁\b/g, 'q₁')
+    .replace(/\bش₂\b/g, 'q₂')
+    .replace(/\bش₃\b/g, 'q₃')
+    .replace(/\bش\b(?=\s*[=×÷\+\-\*\/²³]|\s*$)/g, 'q')
+    // قوة -> F
+    .replace(/\bق₁\b/g, 'F₁')
+    .replace(/\bق₂\b/g, 'F₂')
+    .replace(/\bق\b(?=\s*[=×÷\+\-\*\/²³]|\s*$)/g, 'F')
+    // مسافة/نصف قطر -> r
+    .replace(/\bف₁\b/g, 'r₁')
+    .replace(/\bف₂\b/g, 'r₂')
+    .replace(/\bف\b(?=\s*[=×÷\+\-\*\/²³]|\s*$)/g, 'r')
+    // كتلة -> m
+    .replace(/\bك₁\b/g, 'm₁')
+    .replace(/\bك₂\b/g, 'm₂')
+    .replace(/\bك\b(?=\s*[=×÷\+\-\*\/²³]|\s*$)/g, 'm')
+    // سرعة -> v
+    .replace(/\bع₁\b/g, 'v₁')
+    .replace(/\bع₂\b/g, 'v₂')
+    .replace(/\bع\b(?=\s*[=×÷\+\-\*\/²³]|\s*$)/g, 'v')
+    // تسارع -> a
+    .replace(/\bج₁\b/g, 'a₁')
+    .replace(/\bج₂\b/g, 'a₂')
+    .replace(/\bج\b(?=\s*[=×÷\+\-\*\/²³]|\s*$)/g, 'a')
+    // زمن -> t
+    .replace(/\bز\b(?=\s*[=×÷\+\-\*\/²³]|\s*$)/g, 't')
+    // Additional common patterns
+    .replace(/٣ف/g, '3r')
+    .replace(/٢ف/g, '2r')
+    .replace(/٤ف/g, '4r');
+};
+
 // Clean LaTeX from text
 const cleanLatex = (text: string): string => {
   if (!text) return text;
@@ -64,18 +104,23 @@ const cleanLatex = (text: string): string => {
     .replace(/\\/g, '');
 };
 
+// Apply both cleaning functions
+const cleanAndNormalize = (text: string): string => {
+  return normalizeSymbols(cleanLatex(text));
+};
+
 // Normalize question from AI response
 const normalizeQuestion = (q: any, index: number): Question => ({
   index: index + 1,
-  text: cleanLatex(q.text || q.question || ''),
-  optionA: cleanLatex(q.optionA || q.option_a || ''),
-  optionB: cleanLatex(q.optionB || q.option_b || ''),
-  optionC: cleanLatex(q.optionC || q.option_c || ''),
-  optionD: cleanLatex(q.optionD || q.option_d || ''),
+  text: cleanAndNormalize(q.text || q.question || ''),
+  optionA: cleanAndNormalize(q.optionA || q.option_a || ''),
+  optionB: cleanAndNormalize(q.optionB || q.option_b || ''),
+  optionC: cleanAndNormalize(q.optionC || q.option_c || ''),
+  optionD: cleanAndNormalize(q.optionD || q.option_d || ''),
   correctOption: (q.correctOption || q.correct_option || 'A').toUpperCase(),
   difficulty: (q.difficulty || 'MEDIUM').toUpperCase(),
   mark: q.mark || (q.difficulty === 'EASY' ? 1 : q.difficulty === 'HARD' ? 3 : 2),
-  explanation: cleanLatex(q.explanation || ''),
+  explanation: cleanAndNormalize(q.explanation || ''),
   needsImage: q.needsImage || false,
   qualityScore: q.qualityScore,
 });
