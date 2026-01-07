@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,20 @@ const optionLabels: Record<CorrectOption, string> = {
   B: 'ب',
   C: 'ج',
   D: 'د',
+};
+
+// Function to wrap English numbers and scientific notation with LTR direction
+const formatTextWithNumbers = (text: string): ReactNode => {
+  // Pattern to match numbers, scientific notation with superscripts/subscripts
+  const pattern = /(\d+(?:[.,]\d+)?(?:\s*[×x*]\s*10[⁻⁺]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+)?(?:\s*[a-zA-Z₀₁₂₃₄₅₆₇₈₉⁰¹²³⁴⁵⁶⁷⁸⁹/]+)*)/g;
+  
+  const parts = text.split(pattern);
+  return parts.map((part, i) => {
+    if (pattern.test(part)) {
+      return <span key={i} className="ltr-numbers">{part}</span>;
+    }
+    return part;
+  });
 };
 
 export function QuestionCard({ question, globalShowAnswer = false }: QuestionCardProps) {
@@ -95,7 +109,7 @@ export function QuestionCard({ question, globalShowAnswer = false }: QuestionCar
           </div>
         )}
 
-        <p className="text-lg font-medium leading-relaxed">{question.text}</p>
+        <p className="text-lg font-medium leading-relaxed">{formatTextWithNumbers(question.text)}</p>
 
         <div className="grid gap-2">
           {options.map((option) => {
@@ -119,7 +133,7 @@ export function QuestionCard({ question, globalShowAnswer = false }: QuestionCar
                   {optionLabels[option.key]}
                 </span>
                 <span className={`flex-1 ${showCorrect ? 'text-green-700 dark:text-green-300 font-medium' : ''}`}>
-                  {option.text}
+                  {formatTextWithNumbers(option.text)}
                 </span>
                 {showCorrect && (
                   <CheckCircle2 className="w-5 h-5 text-green-500" />
@@ -132,7 +146,7 @@ export function QuestionCard({ question, globalShowAnswer = false }: QuestionCar
         {showAnswer && question.explanation && (
           <div className="p-4 bg-accent/50 rounded-lg border border-border">
             <p className="text-sm font-medium text-accent-foreground mb-1">الشرح:</p>
-            <p className="text-muted-foreground">{question.explanation}</p>
+            <p className="text-muted-foreground">{formatTextWithNumbers(question.explanation)}</p>
           </div>
         )}
       </CardContent>
