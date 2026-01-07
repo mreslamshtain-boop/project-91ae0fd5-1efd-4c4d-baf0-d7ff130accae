@@ -42,9 +42,9 @@ serve(async (req) => {
 
     console.log('Processing PDF:', file.name, 'Size:', file.size);
 
-    // Check file size - limit to 10MB
-    if (file.size > 10 * 1024 * 1024) {
-      return new Response(JSON.stringify({ error: 'الملف كبير جداً. الحد الأقصى هو 10 ميجابايت' }), {
+    // Check file size - limit to 15MB
+    if (file.size > 15 * 1024 * 1024) {
+      return new Response(JSON.stringify({ error: 'الملف كبير جداً. الحد الأقصى هو 15 ميجابايت' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -56,7 +56,7 @@ serve(async (req) => {
 
     console.log('Base64 encoding complete, length:', base64.length);
 
-    // Use AI to extract text from PDF
+    // Use gemini-2.5-pro for better PDF extraction
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -64,20 +64,45 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-pro',
         messages: [
           {
             role: 'user',
             content: [
               {
                 type: 'text',
-                text: `استخرج المحتوى النصي من هذا الملف PDF باللغة العربية. اذكر:
-1. العناوين والمواضيع الرئيسية
-2. المفاهيم والتعريفات المهمة
-3. القوانين والمعادلات إن وجدت
-4. الأمثلة والتمارين إن وجدت
+                text: `أنت خبير في استخراج المحتوى التعليمي من ملفات PDF. مهمتك استخراج كامل المحتوى النصي من هذا الملف بدقة شديدة.
 
-قدم المحتوى بشكل منظم ومناسب لإنشاء أسئلة اختبار.`
+**تعليمات الاستخراج:**
+
+1. **استخرج النص كاملاً** - لا تختصر أو تلخص. انسخ المحتوى كما هو بالضبط.
+
+2. **حافظ على البنية الأصلية:**
+   - العناوين الرئيسية والفرعية
+   - الترقيم والتعداد
+   - الجداول (حولها لنص منظم)
+   - الأشكال والرسومات (اوصفها بالتفصيل)
+
+3. **المعادلات والرموز:**
+   - اكتب المعادلات الرياضية بالنص العربي
+   - استخدم الرموز العربية: ق=قوة، ك=كتلة، ج=تسارع، ع=سرعة، ش=شحنة، ف=مسافة
+   - لا تستخدم LaTeX
+
+4. **المحتوى المهم للاختبارات:**
+   - التعريفات والمفاهيم
+   - القوانين والنظريات
+   - الأمثلة المحلولة (كاملة)
+   - التمارين والمسائل
+   - الملاحظات والتنبيهات
+
+5. **تنظيم المخرجات:**
+   - اجعل المحتوى سهل القراءة
+   - افصل بين الأقسام بوضوح
+   - رقّم الصفحات إن أمكن
+
+**مهم جداً:** الهدف هو إنشاء أسئلة اختبار من هذا المحتوى، لذا استخرج كل التفاصيل التي يمكن أن تكون أساساً لأسئلة.
+
+ابدأ الاستخراج الآن:`
               },
               {
                 type: 'image_url',
