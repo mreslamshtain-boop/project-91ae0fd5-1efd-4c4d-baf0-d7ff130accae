@@ -95,7 +95,7 @@ export default function Landing() {
             مع صور توضيحية وتصدير احترافي
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{ animationDelay: '0.3s' }}>
             <Link to="/login">
               <Button size="lg" className="text-lg px-8 h-14 hover-scale">
                 <Sparkles className="w-5 h-5 ml-2" />
@@ -106,16 +106,6 @@ export default function Landing() {
               <BookOpen className="w-5 h-5 ml-2" />
               تعرف على المزيد
             </Button>
-          </div>
-
-          {/* Company Info */}
-          <div className="space-y-2 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            <p className="text-muted-foreground">
-              منصة قلم الذكية إنتاج <span className="font-semibold text-foreground">مؤسسة قلم للخدمات الإلكترونية</span>
-            </p>
-            <p className="text-muted-foreground flex items-center justify-center gap-1">
-              بكل فخر <span className="text-red-500 animate-pulse">❤</span> صنع في مصر 🇪🇬
-            </p>
           </div>
         </div>
       </section>
@@ -295,7 +285,7 @@ export default function Landing() {
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-border">
         <div className="container mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <Sparkles className="w-4 h-4 text-primary-foreground" />
@@ -308,6 +298,16 @@ export default function Landing() {
             <div className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} جميع الحقوق محفوظة
             </div>
+          </div>
+          
+          {/* Company Info */}
+          <div className="pt-6 border-t border-border text-center space-y-2">
+            <p className="text-muted-foreground text-sm">
+              منصة قلم الذكية إنتاج <span className="font-semibold text-foreground">مؤسسة قلم للخدمات الإلكترونية</span>
+            </p>
+            <p className="text-muted-foreground text-sm flex items-center justify-center gap-1">
+              بكل فخر <span className="text-red-500 animate-pulse">❤</span> صنع في مصر 🇪🇬
+            </p>
           </div>
         </div>
       </footer>
