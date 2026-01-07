@@ -70,7 +70,8 @@ Style: Clean educational diagram, no decorative elements, suitable for printing 
         'X-Title': 'Exam Generator',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-preview-image-generation',
+        model: 'google/gemini-2.0-flash-exp:free',
+        max_tokens: 4000,
         messages: [
           { role: 'user', content: prompt }
         ],
