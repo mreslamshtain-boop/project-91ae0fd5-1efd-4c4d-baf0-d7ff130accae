@@ -129,8 +129,13 @@ const normalizeQuestion = (q: any, index: number): Question => ({
 });
 
 // Call AI API with model selection via OpenRouter
-async function callAI(apiKey: string, systemPrompt: string, userPrompt: string, model: AIModel): Promise<string> {
-  
+async function callAI(
+  apiKey: string,
+  systemPrompt: string,
+  userPrompt: string,
+  model: AIModel,
+  maxTokens: number
+): Promise<string> {
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -141,7 +146,7 @@ async function callAI(apiKey: string, systemPrompt: string, userPrompt: string, 
     },
     body: JSON.stringify({
       model,
-      max_tokens: 800,
+      max_tokens: maxTokens,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
@@ -218,7 +223,8 @@ async function regenerateWeakQuestions(
   apiKey: string,
   weakQuestions: Question[],
   context: { subject: string; grade: string; title: string; description: string; customPrompt?: string },
-  model: AIModel
+  model: AIModel,
+  maxTokens: number
 ): Promise<Question[]> {
   if (weakQuestions.length === 0) return [];
   
@@ -229,7 +235,7 @@ ${weakQuestions.map((q, i) => `${i + 1}. ${q.text} (${q.difficulty})`).join('\n'
 أرجع JSON array: [{"text":"..","optionA":"..","optionB":"..","optionC":"..","optionD":"..","correctOption":"A","difficulty":"MEDIUM","mark":2,"explanation":"..","needsImage":false}]`;
 
   try {
-    const content = await callAI(apiKey, 'حسّن الأسئلة. أرجع JSON فقط.', regeneratePrompt, model);
+    const content = await callAI(apiKey, 'حسّن الأسئلة. أرجع JSON فقط.', regeneratePrompt, model, maxTokens);
     const improved = parseJsonFromResponse(content);
     return improved.map((q: any, i: number) => normalizeQuestion(q, weakQuestions[i].index - 1));
   } catch (error) {
@@ -400,9 +406,12 @@ ${difficultyInstructions}
   }
 ]`;
 
+    // Token budget: scale with number of questions to avoid truncated JSON
+    const maxTokens = Math.min(8000, Math.max(2000, questionCount * 450));
+
     // Step 1: Generate initial questions
     console.log('Step 1: Generating initial questions...');
-    const content = await callAI(OPENROUTER_API_KEY, systemPrompt, userPrompt, selectedModel);
+    const content = await callAI(OPENROUTER_API_KEY, systemPrompt, userPrompt, selectedModel, maxTokens);
     
     let rawQuestions;
     try {
@@ -437,7 +446,8 @@ ${difficultyInstructions}
           OPENROUTER_API_KEY,
           weakQuestions,
           { subject, grade, title, description, customPrompt },
-          selectedModel
+          selectedModel,
+          Math.min(4000, Math.max(1500, weakQuestions.length * 600))
         );
         
         weakIndices.forEach((originalIndex, i) => {
