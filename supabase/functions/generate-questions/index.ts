@@ -139,7 +139,7 @@ async function callAI(apiKey: string, systemPrompt: string, userPrompt: string, 
     },
     body: JSON.stringify({
       model,
-      max_tokens: 8000,
+      max_tokens: 800,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }

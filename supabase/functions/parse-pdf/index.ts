@@ -67,7 +67,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'openrouter/auto',
-        max_tokens: 16000,
+        max_tokens: 800,
         messages: [
           {
             role: 'user',
