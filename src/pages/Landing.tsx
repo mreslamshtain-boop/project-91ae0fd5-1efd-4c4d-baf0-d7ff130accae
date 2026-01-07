@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   Sparkles, 
   FileText, 
@@ -11,10 +12,12 @@ import {
   ArrowLeft,
   CheckCircle,
   Image as ImageIcon,
-  Download
+  Download,
+  LayoutDashboard
 } from 'lucide-react';
 
 export default function Landing() {
+  const { user } = useAuth();
   const features = [
     {
       icon: Brain,
@@ -62,12 +65,21 @@ export default function Landing() {
             </div>
             <span className="text-xl font-bold">Qalam AI</span>
           </div>
-          <Link to="/login">
-            <Button>
-              تسجيل الدخول
-              <ArrowLeft className="w-4 h-4 mr-2" />
-            </Button>
-          </Link>
+          {user ? (
+            <Link to={user.role === 'ADMIN' ? '/admin' : '/teacher'}>
+              <Button>
+                <LayoutDashboard className="w-4 h-4 ml-2" />
+                لوحة التحكم
+              </Button>
+            </Link>
+          ) : (
+            <Link to="/login">
+              <Button>
+                تسجيل الدخول
+                <ArrowLeft className="w-4 h-4 mr-2" />
+              </Button>
+            </Link>
+          )}
         </div>
       </nav>
 
