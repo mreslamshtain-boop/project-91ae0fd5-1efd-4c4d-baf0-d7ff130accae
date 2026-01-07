@@ -66,7 +66,7 @@ serve(async (req) => {
         'X-Title': 'Exam Generator',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.0-flash-001',
+        model: 'openrouter/auto',
         max_tokens: 16000,
         messages: [
           {
