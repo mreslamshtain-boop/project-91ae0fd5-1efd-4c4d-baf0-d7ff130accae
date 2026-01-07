@@ -66,7 +66,8 @@ serve(async (req) => {
         'X-Title': 'Exam Generator',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-pro-preview',
+        model: 'google/gemini-2.0-flash-001',
+        max_tokens: 16000,
         messages: [
           {
             role: 'user',
@@ -131,7 +132,7 @@ serve(async (req) => {
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: 'يرجى إضافة رصيد لحساب Lovable AI' }), {
+        return new Response(JSON.stringify({ error: 'يرجى إضافة رصيد لحساب OpenRouter: https://openrouter.ai/settings/credits' }), {
           status: 402,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });

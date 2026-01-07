@@ -127,7 +127,7 @@ const normalizeQuestion = (q: any, index: number): Question => ({
 
 // Call AI API with model selection via OpenRouter
 async function callAI(apiKey: string, systemPrompt: string, userPrompt: string, useFastModel = false): Promise<string> {
-  const model = useFastModel ? 'google/gemini-2.5-flash-preview' : 'google/gemini-2.5-flash-preview';
+  const model = 'google/gemini-2.0-flash-001';
   
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
@@ -139,6 +139,7 @@ async function callAI(apiKey: string, systemPrompt: string, userPrompt: string, 
     },
     body: JSON.stringify({
       model,
+      max_tokens: 8000,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
