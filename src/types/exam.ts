@@ -34,6 +34,8 @@ export interface DifficultySettings {
   hardPercent?: number;
 }
 
+export type AIModel = 'xiaomi/mimo-v2-flash:free' | 'nvidia/nemotron-3-nano-30b-a3b:free';
+
 export interface GenerationConfig {
   questionCount: number;
   difficulty: DifficultySettings;
@@ -44,6 +46,7 @@ export interface GenerationConfig {
   pdfFile?: File;
   customPrompt?: string;
   enableQualityCheck: boolean;
+  aiModel: AIModel;
 }
 
 export interface QuestionQuality {

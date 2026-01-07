@@ -70,7 +70,7 @@ Style: Clean educational diagram, no decorative elements, suitable for printing 
         'X-Title': 'Exam Generator',
       },
       body: JSON.stringify({
-        model: 'openrouter/auto',
+        model: 'xiaomi/mimo-v2-flash:free',
         max_tokens: 4000,
         messages: [
           { role: 'user', content: prompt }

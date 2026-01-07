@@ -5,8 +5,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
-import { Settings2, Image, Hash, Sparkles, CheckCircle2 } from "lucide-react";
-import { GenerationConfig, DifficultySettings } from "@/types/exam";
+import { Settings2, Image, Hash, Sparkles, CheckCircle2, Bot } from "lucide-react";
+import { GenerationConfig, DifficultySettings, AIModel } from "@/types/exam";
 
 interface QuestionSettingsProps {
   config: GenerationConfig;
@@ -73,6 +73,11 @@ export function QuestionSettings({ config, onChange }: QuestionSettingsProps) {
     onChange({ ...config, difficulty });
   };
 
+  const AI_MODELS: { value: AIModel; label: string; description: string }[] = [
+    { value: 'xiaomi/mimo-v2-flash:free', label: 'Xiaomi MiMo-V2-Flash', description: 'سريع ومجاني' },
+    { value: 'nvidia/nemotron-3-nano-30b-a3b:free', label: 'Nemotron 3 Nano 30B', description: 'قوي ومجاني' },
+  ];
+
   return (
     <Card className="shadow-md">
       <CardHeader>
@@ -82,6 +87,29 @@ export function QuestionSettings({ config, onChange }: QuestionSettingsProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* AI Model Selection */}
+        <div className="space-y-3">
+          <Label className="text-base font-medium flex items-center gap-2">
+            <Bot className="w-4 h-4 text-muted-foreground" />
+            نموذج الذكاء الاصطناعي (مجاني)
+          </Label>
+          <RadioGroup
+            value={config.aiModel}
+            onValueChange={(v) => onChange({ ...config, aiModel: v as AIModel })}
+            className="grid grid-cols-1 md:grid-cols-2 gap-3"
+          >
+            {AI_MODELS.map((model) => (
+              <div key={model.value} className="flex items-center space-x-2 space-x-reverse bg-card p-3 rounded-lg border border-border hover:border-primary/50 transition-colors">
+                <RadioGroupItem value={model.value} id={model.value} />
+                <div className="flex flex-col">
+                  <Label htmlFor={model.value} className="cursor-pointer text-sm font-medium">{model.label}</Label>
+                  <span className="text-xs text-muted-foreground">{model.description}</span>
+                </div>
+              </div>
+            ))}
+          </RadioGroup>
+        </div>
+
         <div className="space-y-2">
           <Label htmlFor="count" className="text-base font-medium flex items-center gap-2">
             <Hash className="w-4 h-4 text-muted-foreground" />

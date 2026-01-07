@@ -36,7 +36,8 @@ const initialGenerationConfig: GenerationConfig = {
   imagePercentage: 30,
   sourceType: "description",
   customPrompt: "",
-  enableQualityCheck: true
+  enableQualityCheck: true,
+  aiModel: "xiaomi/mimo-v2-flash:free"
 };
 export default function Index() {
   const {

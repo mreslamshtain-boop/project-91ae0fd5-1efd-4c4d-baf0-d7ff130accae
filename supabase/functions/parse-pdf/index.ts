@@ -66,8 +66,8 @@ serve(async (req) => {
         'X-Title': 'Exam Generator',
       },
       body: JSON.stringify({
-        model: 'openrouter/auto',
-        max_tokens: 800,
+        model: 'xiaomi/mimo-v2-flash:free',
+        max_tokens: 4000,
         messages: [
           {
             role: 'user',
