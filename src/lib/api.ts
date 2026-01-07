@@ -41,6 +41,7 @@ export async function generateQuestions(
       pdfContent,
       customPrompt: generationConfig.customPrompt,
       enableQualityCheck: generationConfig.enableQualityCheck,
+      aiModel: generationConfig.aiModel,
     }),
   });
 

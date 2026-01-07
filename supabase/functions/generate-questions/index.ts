@@ -5,6 +5,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+type AIModel = 'xiaomi/mimo-v2-flash:free' | 'nvidia/nemotron-3-nano-30b-a3b:free';
+
 interface GenerateRequest {
   title: string;
   description: string;
@@ -20,6 +22,7 @@ interface GenerateRequest {
   pdfContent?: string;
   customPrompt?: string;
   enableQualityCheck?: boolean;
+  aiModel?: AIModel;
 }
 
 interface Question {
@@ -126,8 +129,7 @@ const normalizeQuestion = (q: any, index: number): Question => ({
 });
 
 // Call AI API with model selection via OpenRouter
-async function callAI(apiKey: string, systemPrompt: string, userPrompt: string, useFastModel = false): Promise<string> {
-  const model = 'openrouter/auto';
+async function callAI(apiKey: string, systemPrompt: string, userPrompt: string, model: AIModel): Promise<string> {
   
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
@@ -212,7 +214,8 @@ function evaluateQualityFast(questions: Question[]): { scores: number[], weakInd
 async function regenerateWeakQuestions(
   apiKey: string,
   weakQuestions: Question[],
-  context: { subject: string; grade: string; title: string; description: string; customPrompt?: string }
+  context: { subject: string; grade: string; title: string; description: string; customPrompt?: string },
+  model: AIModel
 ): Promise<Question[]> {
   if (weakQuestions.length === 0) return [];
   
@@ -223,7 +226,7 @@ ${weakQuestions.map((q, i) => `${i + 1}. ${q.text} (${q.difficulty})`).join('\n'
 أرجع JSON array: [{"text":"..","optionA":"..","optionB":"..","optionC":"..","optionD":"..","correctOption":"A","difficulty":"MEDIUM","mark":2,"explanation":"..","needsImage":false}]`;
 
   try {
-    const content = await callAI(apiKey, 'حسّن الأسئلة. أرجع JSON فقط.', regeneratePrompt, true);
+    const content = await callAI(apiKey, 'حسّن الأسئلة. أرجع JSON فقط.', regeneratePrompt, model);
     const improved = parseJsonFromResponse(content);
     return improved.map((q: any, i: number) => normalizeQuestion(q, weakQuestions[i].index - 1));
   } catch (error) {
@@ -243,9 +246,10 @@ serve(async (req) => {
       throw new Error('OPENROUTER_API_KEY is not configured');
     }
 
-    const { title, description, subject, grade, questionCount, difficulty, pdfContent, customPrompt, enableQualityCheck }: GenerateRequest = await req.json();
+    const { title, description, subject, grade, questionCount, difficulty, pdfContent, customPrompt, enableQualityCheck, aiModel }: GenerateRequest = await req.json();
 
-    console.log('Generating questions for:', { title, subject, questionCount, difficulty, enableQualityCheck });
+    const selectedModel: AIModel = aiModel || 'xiaomi/mimo-v2-flash:free';
+    console.log('Generating questions for:', { title, subject, questionCount, difficulty, enableQualityCheck, model: selectedModel });
 
     // Build difficulty distribution
     let difficultyInstructions = '';
@@ -395,7 +399,7 @@ ${difficultyInstructions}
 
     // Step 1: Generate initial questions
     console.log('Step 1: Generating initial questions...');
-    const content = await callAI(OPENROUTER_API_KEY, systemPrompt, userPrompt);
+    const content = await callAI(OPENROUTER_API_KEY, systemPrompt, userPrompt, selectedModel);
     
     let rawQuestions;
     try {
@@ -429,7 +433,8 @@ ${difficultyInstructions}
         const improvedQuestions = await regenerateWeakQuestions(
           OPENROUTER_API_KEY,
           weakQuestions,
-          { subject, grade, title, description, customPrompt }
+          { subject, grade, title, description, customPrompt },
+          selectedModel
         );
         
         weakIndices.forEach((originalIndex, i) => {
