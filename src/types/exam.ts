@@ -38,6 +38,8 @@ export interface GenerationConfig {
   questionCount: number;
   difficulty: DifficultySettings;
   generateImages: boolean;
+  imageMode: 'auto' | 'percentage';
+  imagePercentage: number;
   sourceType: 'description' | 'pdf' | 'both';
   pdfFile?: File;
   customPrompt?: string;

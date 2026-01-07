@@ -209,25 +209,66 @@ export function QuestionSettings({ config, onChange }: QuestionSettingsProps) {
         </div>
 
         {/* Generate Images Toggle */}
-        <div className="flex items-center justify-between p-4 bg-card rounded-lg border border-border">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Image className="w-5 h-5 text-primary" />
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-4 bg-card rounded-lg border border-border">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Image className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <Label htmlFor="images" className="text-base font-medium cursor-pointer">
+                  توليد صور للأسئلة
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  إنشاء رسوم توضيحية للأسئلة
+                </p>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="images" className="text-base font-medium cursor-pointer">
-                توليد صور للأسئلة
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                للأسئلة التي تحتاج شكلاً أو رسمًا بيانيًا
-              </p>
-            </div>
+            <Switch
+              id="images"
+              checked={config.generateImages}
+              onCheckedChange={(checked) => onChange({ ...config, generateImages: checked })}
+            />
           </div>
-          <Switch
-            id="images"
-            checked={config.generateImages}
-            onCheckedChange={(checked) => onChange({ ...config, generateImages: checked })}
-          />
+
+          {config.generateImages && (
+            <div className="space-y-4 p-4 bg-accent/30 rounded-lg border border-border">
+              <RadioGroup
+                value={config.imageMode || 'percentage'}
+                onValueChange={(v) => onChange({ ...config, imageMode: v as 'auto' | 'percentage' })}
+                className="grid grid-cols-2 gap-3"
+              >
+                <div className="flex items-center space-x-2 space-x-reverse bg-card p-3 rounded-lg border border-border hover:border-primary/50 transition-colors">
+                  <RadioGroupItem value="percentage" id="img-percentage" />
+                  <Label htmlFor="img-percentage" className="cursor-pointer text-sm">نسبة محددة</Label>
+                </div>
+                <div className="flex items-center space-x-2 space-x-reverse bg-card p-3 rounded-lg border border-border hover:border-primary/50 transition-colors">
+                  <RadioGroupItem value="auto" id="img-auto" />
+                  <Label htmlFor="img-auto" className="cursor-pointer text-sm">تلقائي (حسب نص السؤال)</Label>
+                </div>
+              </RadioGroup>
+
+              {(config.imageMode === 'percentage' || !config.imageMode) && (
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-sm">نسبة الأسئلة التي تحتاج صور</Label>
+                    <span className="text-sm font-medium text-primary">{config.imagePercentage || 30}%</span>
+                  </div>
+                  <Slider
+                    value={[config.imagePercentage || 30]}
+                    onValueChange={([v]) => onChange({ ...config, imagePercentage: v })}
+                    max={100}
+                    min={10}
+                    step={10}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    سيتم توليد صور لـ {Math.max(1, Math.round((config.questionCount || 10) * (config.imagePercentage || 30) / 100))} سؤال من أصل {config.questionCount || 10}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

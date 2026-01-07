@@ -32,6 +32,8 @@ const initialGenerationConfig: GenerationConfig = {
     hardPercent: 33
   },
   generateImages: true,
+  imageMode: "percentage",
+  imagePercentage: 30,
   sourceType: "description",
   customPrompt: "",
   enableQualityCheck: true
@@ -122,25 +124,46 @@ export default function Index() {
           message: "جاري توليد الصور التوضيحية...",
           progress: 60
         });
-        for (let i = 0; i < questions.length; i++) {
+        
+        // Determine which questions need images
+        let questionsToGenerateImages: number[] = [];
+        
+        if (generationConfig.imageMode === 'percentage') {
+          // Force generate images for a percentage of questions
+          const imageCount = Math.max(1, Math.round(questions.length * generationConfig.imagePercentage / 100));
+          // Select random questions for image generation
+          const indices = questions.map((_, i) => i);
+          for (let i = indices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [indices[i], indices[j]] = [indices[j], indices[i]];
+          }
+          questionsToGenerateImages = indices.slice(0, imageCount);
+        } else {
+          // Auto mode: only generate for questions that explicitly need images
+          questionsToGenerateImages = questions
+            .map((q, i) => (needsImage(q.text) || q.needsImage) ? i : -1)
+            .filter(i => i !== -1);
+        }
+        
+        console.log(`Generating images for ${questionsToGenerateImages.length} questions`);
+        
+        for (const i of questionsToGenerateImages) {
           const question = questions[i];
-          if (needsImage(question.text) || question.needsImage) {
-            setProgress({
-              step: "images",
-              message: `جاري توليد صورة للسؤال ${i + 1}...`,
-              progress: 60 + Math.round(i / questions.length * 25)
-            });
-            try {
-              const imageUrl = await generateDiagram(question.text, examId, question.id);
-              if (imageUrl) {
-                questions[i] = {
-                  ...question,
-                  imageUrl
-                };
-              }
-            } catch (error) {
-              console.error(`Failed to generate image for question ${i + 1}:`, error);
+          setProgress({
+            step: "images",
+            message: `جاري توليد صورة للسؤال ${i + 1}...`,
+            progress: 60 + Math.round(questionsToGenerateImages.indexOf(i) / questionsToGenerateImages.length * 25)
+          });
+          try {
+            const imageUrl = await generateDiagram(question.text, examId, question.id);
+            if (imageUrl) {
+              questions[i] = {
+                ...question,
+                imageUrl
+              };
             }
+          } catch (error) {
+            console.error(`Failed to generate image for question ${i + 1}:`, error);
           }
         }
       }
