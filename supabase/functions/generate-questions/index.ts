@@ -168,7 +168,10 @@ async function callAI(apiKey: string, systemPrompt: string, userPrompt: string, 
 
 // Parse JSON from AI response
 function parseJsonFromResponse(content: string): any[] {
-  const jsonMatch = content.match(/\[[\s\S]*\]/);
+  // Remove markdown code blocks if present
+  let cleaned = content.replace(/```json\s*/gi, '').replace(/```\s*/g, '');
+  
+  const jsonMatch = cleaned.match(/\[[\s\S]*\]/);
   if (jsonMatch) {
     return JSON.parse(jsonMatch[0]);
   }
