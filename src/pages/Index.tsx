@@ -226,10 +226,6 @@ export default function Index() {
               </Button>
             </Link>
           </div>
-          {user && <Button variant="ghost" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 ml-2" />
-              تسجيل الخروج
-            </Button>}
         </div>
       </header>
 
