@@ -28,9 +28,23 @@ serve(async (req) => {
     const prompt = `Create a simple, clean educational diagram for an Arabic exam question. The diagram should be:
 - Simple black lines on pure white background
 - Minimalist exam-style illustration
-- Include only essential labels in Arabic if needed
 - Professional and clear for students
 - Suitable for physics, math, or science exams
+
+**CRITICAL RULES for labels and symbols:**
+- Use standard Latin physics symbols ONLY (NOT Arabic letters):
+  • Charge: q, q₁, q₂ (NOT ش)
+  • Force: F (NOT ق)
+  • Distance/radius: r, 2r, 3r (NOT ف or م)
+  • Mass: m (NOT ك)
+  • Velocity: v (NOT س)
+  • Current: I
+  • Voltage: V
+  • Electric field: E
+  • Magnetic field: B
+- Arabic text is OK ONLY for descriptive labels like "الوضع الابتدائي" or "نقطة التلامس"
+- Example correct labels: q₁, q₂, r, 3r, F, +q, -q
+- Example WRONG labels: ش₁, ش₂, ف, ٣ف, ق
 
 The question context: ${questionText}
 
