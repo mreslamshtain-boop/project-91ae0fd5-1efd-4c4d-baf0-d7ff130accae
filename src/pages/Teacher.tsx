@@ -67,7 +67,7 @@ export default function Teacher() {
           {/* Quick Actions */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="cursor-pointer hover:border-primary transition-colors">
-              <Link to="/">
+              <Link to="/generate">
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">

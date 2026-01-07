@@ -41,7 +41,8 @@ export default function Index() {
   const navigate = useNavigate();
   const {
     user,
-    logout
+    logout,
+    isLoading
   } = useAuth();
   const [examConfig, setExamConfig] = useState<ExamConfig>(initialExamConfig);
   const [generationConfig, setGenerationConfig] = useState<GenerationConfig>(initialGenerationConfig);
@@ -52,6 +53,20 @@ export default function Index() {
   });
   const [exam, setExam] = useState<Exam | null>(null);
   const isGenerating = progress.step !== "idle" && progress.step !== "complete" && progress.step !== "error";
+
+  // Redirect to login if not authenticated
+  if (!isLoading && !user) {
+    navigate('/login');
+    return null;
+  }
+
+  if (isLoading) {
+    return (
+      <div dir="rtl" className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
   const canGenerate = examConfig.title.trim() !== "" && (examConfig.description.trim() !== "" || generationConfig.pdfFile) && !isGenerating;
   const handleGenerate = async () => {
     if (!canGenerate) {
