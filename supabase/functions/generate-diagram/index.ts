@@ -12,7 +12,8 @@ serve(async (req) => {
   }
 
   try {
-    const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
+    // Use environment variable or fallback API key
+    const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY') || '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';
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
@@ -70,7 +71,7 @@ Style: Clean educational diagram, no decorative elements, suitable for printing 
         'X-Title': 'Exam Generator',
       },
       body: JSON.stringify({
-        model: 'xiaomi/mimo-v2-flash:free',
+        model: 'google/gemini-2.0-flash-exp:free',
         max_tokens: 4000,
         messages: [
           { role: 'user', content: prompt }
