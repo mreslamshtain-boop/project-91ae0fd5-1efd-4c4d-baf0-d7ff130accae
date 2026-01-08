@@ -257,7 +257,7 @@ serve(async (req) => {
 
     const { title, description, subject, grade, questionCount, difficulty, pdfContent, customPrompt, enableQualityCheck, aiModel }: GenerateRequest = await req.json();
 
-    const selectedModel: AIModel = aiModel || 'xiaomi/mimo-v2-flash:free';
+    const selectedModel: AIModel = aiModel || 'google/gemini-2.0-flash-exp:free';
     console.log('Generating questions for:', { title, subject, questionCount, difficulty, enableQualityCheck, model: selectedModel });
 
     // Build difficulty distribution

@@ -34,7 +34,7 @@ export interface DifficultySettings {
   hardPercent?: number;
 }
 
-export type AIModel = 'xiaomi/mimo-v2-flash:free' | 'nvidia/nemotron-3-nano-30b-a3b:free';
+export type AIModel = 'google/gemini-2.0-flash-exp:free' | 'xiaomi/mimo-v2-flash:free' | 'nvidia/nemotron-3-nano-30b-a3b:free';
 
 export interface GenerationConfig {
   questionCount: number;

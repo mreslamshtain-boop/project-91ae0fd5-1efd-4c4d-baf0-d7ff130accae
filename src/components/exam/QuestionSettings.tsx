@@ -74,6 +74,7 @@ export function QuestionSettings({ config, onChange }: QuestionSettingsProps) {
   };
 
   const AI_MODELS: { value: AIModel; label: string; description: string }[] = [
+    { value: 'google/gemini-2.0-flash-exp:free', label: 'Google Gemini 2.0 Flash', description: 'قوي ومجاني - موصى به' },
     { value: 'xiaomi/mimo-v2-flash:free', label: 'Xiaomi MiMo-V2-Flash', description: 'سريع ومجاني' },
     { value: 'nvidia/nemotron-3-nano-30b-a3b:free', label: 'Nemotron 3 Nano 30B', description: 'قوي ومجاني' },
   ];
