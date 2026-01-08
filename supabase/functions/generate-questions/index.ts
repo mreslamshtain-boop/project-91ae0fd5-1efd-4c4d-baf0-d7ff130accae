@@ -127,6 +127,12 @@ const normalizeQuestion = (q: any, index: number): Question => ({
   needsImage: q.needsImage || false,
   qualityScore: q.qualityScore,
 });
+// Fallback models in order of preference
+const FALLBACK_MODELS: AIModel[] = [
+  'google/gemini-2.0-flash-exp:free',
+  'xiaomi/mimo-v2-flash:free',
+  'nvidia/nemotron-3-nano-30b-a3b:free'
+];
 
 // Call AI API with model selection via OpenRouter
 async function callAI(
@@ -134,7 +140,8 @@ async function callAI(
   systemPrompt: string,
   userPrompt: string,
   model: AIModel,
-  maxTokens: number
+  maxTokens: number,
+  retryWithFallback: boolean = true
 ): Promise<string> {
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
@@ -168,7 +175,25 @@ async function callAI(
   }
 
   const data = await response.json();
-  return data.choices?.[0]?.message?.content || '';
+  const content = data.choices?.[0]?.message?.content || '';
+  
+  // If response is empty and we can retry with fallback
+  if (!content.trim() && retryWithFallback) {
+    console.warn(`Model ${model} returned empty response, trying fallback...`);
+    
+    // Find next available model
+    const currentIndex = FALLBACK_MODELS.indexOf(model);
+    const nextModels = currentIndex >= 0 
+      ? FALLBACK_MODELS.filter((_, i) => i !== currentIndex)
+      : FALLBACK_MODELS.filter(m => m !== model);
+    
+    if (nextModels.length > 0) {
+      console.log(`Retrying with fallback model: ${nextModels[0]}`);
+      return callAI(apiKey, systemPrompt, userPrompt, nextModels[0], maxTokens, false);
+    }
+  }
+  
+  return content;
 }
 
 // Parse JSON from AI response
@@ -250,7 +275,8 @@ serve(async (req) => {
   }
 
   try {
-    const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
+    // Use environment variable or fallback API key
+    const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY') || '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';
     if (!OPENROUTER_API_KEY) {
       throw new Error('OPENROUTER_API_KEY is not configured');
     }
@@ -415,10 +441,13 @@ ${difficultyInstructions}
     
     let rawQuestions;
     try {
+      if (!content.trim()) {
+        throw new Error('AI model returned empty response');
+      }
       rawQuestions = parseJsonFromResponse(content);
     } catch (parseError) {
-      console.error('Parse error:', parseError, 'Content:', content);
-      throw new Error('Failed to parse AI response');
+      console.error('Parse error:', parseError, 'Content:', content.substring(0, 500));
+      throw new Error('فشل في تحليل رد الذكاء الاصطناعي. يرجى المحاولة مرة أخرى أو تغيير النموذج.');
     }
 
     // Trim to requested count if AI returned more
